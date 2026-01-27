@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "een-mcp-server": {
+      "command": "node",
+      "args": [
+        "/Users/klaushofrichter/Development/een-api-toolkit-demos/mcp/claude/een-mcp-server/dist/src/index.js"
+      ]
+    }
+  }
+}

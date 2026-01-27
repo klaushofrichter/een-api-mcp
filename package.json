@@ -1,0 +1,45 @@
+{
+  "name": "een-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Eagle Eye Networks camera systems",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "een-mcp-server": "dist/index.js",
+    "een-auth": "dist/cli/auth.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "auth": "tsx cli/auth.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run --dir test/unit",
+    "test:integration": "vitest run --dir test/integration",
+    "lint": "eslint src cli",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "playwright": "^1.40.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "eagle-eye-networks",
+    "een",
+    "camera",
+    "video-surveillance",
+    "ai-assistant"
+  ],
+  "license": "MIT"
+}
