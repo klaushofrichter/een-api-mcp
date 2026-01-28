@@ -12,6 +12,7 @@ Model Context Protocol (MCP) server for Eagle Eye Networks camera systems. This 
 - **Alert Access**: Query triggered alerts and notifications
 - **Bridge Information**: View bridge devices and their connection status
 - **Multi-Account Support**: Configure and switch between multiple EEN accounts
+- **Auto-Select Single Account**: When only one account is configured, it's automatically selected for API calls
 - **Automatic Token Refresh**: Tokens are refreshed automatically before expiration
 
 ## Prerequisites
@@ -116,6 +117,15 @@ npm run auth list
 # Revoke and remove an account
 npm run auth revoke -- --account user@example.com
 ```
+
+### Account Auto-Selection
+
+The MCP server includes automatic account selection for improved compatibility with AI assistants:
+
+- **Single Account**: When only one account is configured, it is automatically selected for API calls without requiring `een_set_account` to be called first
+- **Multiple Accounts**: When multiple accounts are configured, you must explicitly select one using `een_set_account` before making API calls
+
+This feature improves robustness when working with AI assistants that may not always call `een_set_account` before making API requests.
 
 ### Credential Storage
 
