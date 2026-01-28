@@ -30,4 +30,5 @@ coverage/
 /tmp/
 *.tmp
 test-results.html
+claude-test-results.html
 gemini-test-results.html
