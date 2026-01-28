@@ -221,6 +221,16 @@ describe('Auth CLI Integration Tests', () => {
     })
 
     it('should require client credentials', () => {
+      // Skip this test if .env file has credentials (CLI loads from .env via dotenv)
+      const envPath = path.join(process.cwd(), '.env')
+      if (fs.existsSync(envPath)) {
+        const envContent = fs.readFileSync(envPath, 'utf-8')
+        if (envContent.includes('EEN_CLIENT_ID')) {
+          console.log('Skipping: .env file has EEN_CLIENT_ID configured')
+          return
+        }
+      }
+
       // Clear EEN_CLIENT_ID to test this
       const env = { ...process.env }
       delete env.EEN_CLIENT_ID

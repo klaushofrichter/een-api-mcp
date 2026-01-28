@@ -7,6 +7,7 @@ export type ErrorCode =
   | 'AUTH_EXPIRED'
   | 'TOKEN_EXPIRED'
   | 'NO_ACTIVE_ACCOUNT'
+  | 'NO_ACCOUNTS'
   | 'ACCOUNT_NOT_FOUND'
   | 'API_ERROR'
   | 'NETWORK_ERROR'

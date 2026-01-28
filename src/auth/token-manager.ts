@@ -205,10 +205,28 @@ export function setActiveAccount(accountId: string): Result<void> {
 
 /**
  * Get active account or return error if none selected.
+ * Auto-selects the first account if only one is configured and none is selected.
  */
 export function requireActiveAccount(): Result<{ accountId: string; account: StoredAccount }> {
+  // If no account is selected, try to auto-select
   if (!activeAccountId) {
-    return failure('NO_ACTIVE_ACCOUNT', 'No account selected. Use een_set_account to select an account first.')
+    const accounts = listAccounts()
+
+    if (accounts.length === 0) {
+      return failure('NO_ACCOUNTS', 'No accounts configured. Run the auth CLI to login first.')
+    }
+
+    if (accounts.length === 1) {
+      // Auto-select the only available account
+      activeAccountId = accounts[0]!
+      // Note: Silently auto-select to avoid interfering with MCP output
+    } else {
+      // Multiple accounts - list them in the error message
+      return failure(
+        'NO_ACTIVE_ACCOUNT',
+        `No account selected. Use een_set_account to select one of: ${accounts.join(', ')}`
+      )
+    }
   }
 
   const account = getAccount(activeAccountId)

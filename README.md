@@ -1,6 +1,6 @@
 # EEN MCP Server
 
-Model Context Protocol (MCP) server for Eagle Eye Networks camera systems. This server enables AI assistants like Claude to interact with EEN cameras, view live/recorded images, query events, manage layouts, and more.
+Model Context Protocol (MCP) server for Eagle Eye Networks camera systems. This server enables AI assistants like Claude and Gemini to interact with EEN cameras, view live/recorded images, query events, manage layouts, and more.
 
 ## Features
 
@@ -199,6 +199,64 @@ After configuration, you can verify the MCP server is connected by asking Claude
 > "What EEN accounts do I have configured?"
 
 Claude should use the `een_list_accounts` tool and return your configured accounts.
+
+## Configuring Gemini CLI
+
+The MCP server can also be used with [Google's Gemini CLI](https://github.com/google-gemini/gemini-cli).
+
+### Gemini CLI Configuration
+
+Add the MCP server to your Gemini CLI settings file:
+
+**Global settings**: `~/.gemini/settings.json`
+
+```json
+{
+  "mcpServers": {
+    "een-mcp-server": {
+      "command": "node",
+      "args": ["/absolute/path/to/een-api-mcp/dist/src/index.js"],
+      "env": {
+        "EEN_CLIENT_ID": "your-client-id",
+        "EEN_CLIENT_SECRET": "your-client-secret"
+      },
+      "timeout": 60000
+    }
+  }
+}
+```
+
+**Optional parameters:**
+- `timeout`: Request timeout in milliseconds (default: 600000)
+- `trust`: Set to `true` to bypass tool confirmations (use with caution)
+- `cwd`: Working directory for the server process
+
+### Using with npx (Alternative)
+
+You can also run the server directly via npx without local installation:
+
+```json
+{
+  "mcpServers": {
+    "een-mcp-server": {
+      "command": "npx",
+      "args": ["tsx", "/absolute/path/to/een-api-mcp/src/index.ts"],
+      "env": {
+        "EEN_CLIENT_ID": "your-client-id",
+        "EEN_CLIENT_SECRET": "your-client-secret"
+      }
+    }
+  }
+}
+```
+
+### Verifying the Connection
+
+After configuration, verify the MCP server is connected by asking Gemini:
+
+> "What EEN accounts do I have configured?"
+
+Gemini should use the `een_list_accounts` tool and return your configured accounts.
 
 ## Available Tools
 

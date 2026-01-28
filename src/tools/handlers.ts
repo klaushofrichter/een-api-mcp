@@ -117,12 +117,18 @@ export async function handleToolCall(
     case 'een_list_accounts': {
       const accounts = listAccounts()
       const activeAccount = getActiveAccountId()
+      let note: string
+      if (accounts.length === 0) {
+        note = 'No accounts configured. Run "npx tsx cli/auth.ts login" to add an account.'
+      } else if (accounts.length === 1) {
+        note = 'Single account configured - it will be auto-selected when making API calls.'
+      } else {
+        note = 'Multiple accounts configured. Use een_set_account to select one before making API calls.'
+      }
       return textResult({
         accounts,
         activeAccount,
-        note: accounts.length === 0
-          ? 'No accounts configured. Run "npx tsx cli/auth.ts login" to add an account.'
-          : 'Use een_set_account to select an account before making API calls.'
+        note
       })
     }
 
