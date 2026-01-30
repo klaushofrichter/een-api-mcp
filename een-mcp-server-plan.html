@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EEN MCP Server - Implementation Plan v2.0</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --code-bg: #1e293b;
+            --code-text: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: white;
+            opacity: 0.9;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        nav {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            justify-content: center;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+            background: var(--bg);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+
+        section h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        section h3 {
+            color: var(--text);
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem 0;
+        }
+
+        section h4 {
+            color: var(--text);
+            font-size: 1rem;
+            margin: 1.25rem 0 0.5rem 0;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .diagram {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.75rem;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.3;
+            margin: 1rem 0;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        code {
+            background: var(--bg);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            color: var(--primary);
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        td {
+            color: var(--text-muted);
+        }
+
+        tr:hover {
+            background: var(--bg);
+        }
+
+        .principles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .principle {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .principle strong {
+            color: var(--text);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .principle span {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+
+        .task-card {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        .task-card h4 {
+            color: var(--primary);
+            margin: 0 0 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .task-card .task-num {
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .task-card .meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .task-card .meta span {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            background: var(--card-bg);
+            color: var(--text-muted);
+        }
+
+        .task-card .deliverables {
+            margin-top: 0.75rem;
+        }
+
+        .task-card .deliverables ul {
+            margin-left: 1rem;
+            margin-bottom: 0;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.25rem;
+        }
+
+        .tag.optional {
+            background: var(--secondary);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--bg);
+            padding: 1.25rem;
+            border-radius: 8px;
+        }
+
+        .card h4 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        .phase-container {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .phase {
+            flex: 1;
+            min-width: 280px;
+            background: var(--bg);
+            padding: 1.25rem;
+            border-radius: 8px;
+            border-top: 4px solid var(--primary);
+        }
+
+        .phase h4 {
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .security-item {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+        }
+
+        .security-item h4 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .security-item ul {
+            margin: 0;
+            padding-left: 1.25rem;
+        }
+
+        .security-item li {
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+
+        .keyword { color: #c792ea; }
+        .string { color: #c3e88d; }
+        .comment { color: #676e95; }
+        .function { color: #82aaff; }
+        .type { color: #ffcb6b; }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.75rem; }
+            main { padding: 1rem; }
+            section { padding: 1.25rem; }
+            nav ul { justify-content: flex-start; }
+            .diagram { font-size: 0.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>EEN MCP Server</h1>
+        <p>Model Context Protocol Server for Eagle Eye Networks API</p>
+        <span class="badge">Implementation Plan v2.0</span>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#authentication">Authentication</a></li>
+            <li><a href="#api-integration">API Integration</a></li>
+            <li><a href="#tools">MCP Tools</a></li>
+            <li><a href="#tasks">Development Tasks</a></li>
+            <li><a href="#configuration">Configuration</a></li>
+            <li><a href="#security">Security</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>
+                This document outlines the implementation plan for an <strong>MCP (Model Context Protocol) server</strong>
+                that provides AI assistants with access to Eagle Eye Networks (EEN) camera systems. The server enables
+                querying cameras, fetching live/recorded images, accessing events, and managing users.
+            </p>
+
+            <h3>Design Principles</h3>
+            <div class="principles">
+                <div class="principle">
+                    <strong>1. No External Proxy</strong>
+                    <span>Token management is local to the server</span>
+                </div>
+                <div class="principle">
+                    <strong>2. Multi-User Support</strong>
+                    <span>Credentials stored per account name</span>
+                </div>
+                <div class="principle">
+                    <strong>3. No Vue/Pinia</strong>
+                    <span>Direct REST API calls using fetch</span>
+                </div>
+                <div class="principle">
+                    <strong>4. Headless Auth</strong>
+                    <span>Playwright-based OAuth automation</span>
+                </div>
+                <div class="principle">
+                    <strong>5. Modular Design</strong>
+                    <span>Independent components for parallel dev</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section id="architecture">
+            <h2>Architecture</h2>
+            <div class="diagram">┌─────────────────────────────────────────────────────────────────────────┐
+│                           EEN MCP Server                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐     │
+│  │  MCP Interface  │    │   API Client    │    │  Token Manager  │     │
+│  │                 │    │                 │    │                 │     │
+│  │  - Tool defs    │───▶│  - Cameras      │◀───│  - Multi-user   │     │
+│  │  - Handlers     │    │  - Events       │    │  - Auto-refresh │     │
+│  │  - Resources    │    │  - Users        │    │  - File storage │     │
+│  └─────────────────┘    │  - Media        │    └────────┬────────┘     │
+│                         │  - Alerts       │             │              │
+│                         └─────────────────┘             │              │
+│                                                         │              │
+├─────────────────────────────────────────────────────────┼──────────────┤
+│                                                         │              │
+│  ┌─────────────────────────────────────────────────────▼────────┐     │
+│  │                    Auth CLI (Playwright)                      │     │
+│  │                                                               │     │
+│  │  Separate script for headless OAuth authentication            │     │
+│  │  Input: username, password, client_id, client_secret          │     │
+│  │  Output: refresh_token, access_token, base_url, user_id       │     │
+│  └───────────────────────────────────────────────────────────────┘     │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+              ┌───────────────────────────────┐
+              │   ~/.een-mcp/credentials.json │
+              │                               │
+              │   {                           │
+              │     "accounts": {             │
+              │       "user@example.com": {   │
+              │         "refreshToken": "...",│
+              │         "accessToken": "...", │
+              │         "baseUrl": "...",     │
+              │         "password": "..."     │
+              │       }                       │
+              │     },                        │
+              │     "clientId": "...",        │
+              │     "clientSecret": "..."     │
+              │   }                           │
+              └───────────────────────────────┘</div>
+        </section>
+
+        <!-- Authentication Section -->
+        <section id="authentication">
+            <h2>Authentication Strategy</h2>
+
+            <div class="alert alert-info">
+                <strong>Design Decision:</strong> Authentication is performed separately via CLI.
+                Users must authenticate accounts <em>before</em> using the MCP server through Claude.
+                This ensures passwords never flow through AI conversations.
+            </div>
+
+            <h3>Auth CLI Commands</h3>
+            <pre><code><span class="comment"># Login and store credentials</span>
+npx tsx cli/auth.ts login \
+  --username user@example.com \
+  --password "your-password" \
+  --client-id "your-client-id" \
+  --client-secret "your-client-secret" \
+  [--persistPassword]                    <span class="comment"># Optional: enable auto-reauth</span>
+
+<span class="comment"># List configured accounts</span>
+npx tsx cli/auth.ts list
+
+<span class="comment"># Show detailed account status</span>
+npx tsx cli/auth.ts status
+
+<span class="comment"># Revoke tokens and remove account</span>
+npx tsx cli/auth.ts revoke --account user@example.com</code></pre>
+
+            <h3>CLI Options</h3>
+            <table>
+                <thead>
+                    <tr><th>Option</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>--username</code></td><td>EEN account email (required for login)</td></tr>
+                    <tr><td><code>--password</code></td><td>EEN account password (required for login)</td></tr>
+                    <tr><td><code>--client-id</code></td><td>OAuth client ID (or set <code>EEN_CLIENT_ID</code> env var)</td></tr>
+                    <tr><td><code>--client-secret</code></td><td>OAuth client secret (or set <code>EEN_CLIENT_SECRET</code> env var)</td></tr>
+                    <tr><td><code>--persistPassword</code></td><td>Store encrypted password for auto re-authentication</td></tr>
+                    <tr><td><code>--account</code></td><td>Account identifier for revoke command</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Two-Phase Authentication</h3>
+
+            <div class="phase-container">
+                <div class="phase">
+                    <h4>Phase 1: Credential Acquisition (CLI)</h4>
+                    <ol>
+                        <li>Launch headless Chromium via Playwright</li>
+                        <li>Navigate to EEN OAuth URL</li>
+                        <li>Automate login form</li>
+                        <li>Capture authorization code</li>
+                        <li>Exchange code directly with EEN</li>
+                        <li>Store tokens locally</li>
+                        <li>Optionally encrypt and store password</li>
+                    </ol>
+                </div>
+                <div class="phase">
+                    <h4>Phase 2: MCP Server Runtime</h4>
+                    <ol>
+                        <li>Load credentials on startup</li>
+                        <li>No account active initially</li>
+                        <li>User must call <code>een_set_account</code></li>
+                        <li>API calls require active account</li>
+                        <li>Auto-refresh using refresh token</li>
+                        <li>If refresh fails + password → re-auth</li>
+                        <li>If refresh fails + no password → error</li>
+                    </ol>
+                </div>
+            </div>
+
+            <h3>Token Refresh Flow</h3>
+            <div class="diagram">ensureValidToken(account)
+    │
+    ├─► Token valid? → Return success
+    │
+    ├─► Try refreshAccessToken()
+    │       │
+    │       ├─► Success → Update storage, return success
+    │       │
+    │       └─► Failure (refresh token expired)
+    │               │
+    │               ├─► Password stored? → reAuthenticate()
+    │               │       ├─► Success → Update all tokens
+    │               │       └─► Failure → AUTH_FAILED error
+    │               │
+    │               └─► No password → AUTH_EXPIRED error
+    │                   (User must run CLI to re-authenticate)</div>
+
+            <h3>Token Storage Format</h3>
+            <pre><code>{
+  <span class="string">"accounts"</span>: {
+    <span class="string">"user@example.com"</span>: {
+      <span class="string">"refreshToken"</span>: <span class="string">"eyJ..."</span>,
+      <span class="string">"accessToken"</span>: <span class="string">"eyJ..."</span>,
+      <span class="string">"accessTokenExpiresAt"</span>: <span class="type">1705680000000</span>,
+      <span class="string">"baseUrl"</span>: <span class="string">"https://c001.eagleeyenetworks.com"</span>,
+      <span class="string">"userId"</span>: <span class="string">"abc123"</span>,
+      <span class="string">"userName"</span>: <span class="string">"John Doe"</span>,
+      <span class="string">"password"</span>: <span class="string">"encrypted-if-persisted"</span>
+    }
+  },
+  <span class="string">"clientId"</span>: <span class="string">"your-client-id"</span>,
+  <span class="string">"clientSecret"</span>: <span class="string">"encrypted-secret"</span>
+}</code></pre>
+            <p style="font-size: 0.875rem; color: var(--text-muted);">
+                <strong>Note:</strong> No default account. Users must call <code>een_set_account</code> before making API calls.
+            </p>
+
+            <div class="alert alert-warning">
+                <strong>Security:</strong> File permissions <code>0o600</code>. Passwords encrypted using machine-specific key.
+                Trade-off: <code>--persistPassword</code> enables convenience but stores credentials locally.
+            </div>
+        </section>
+
+        <!-- API Integration Section -->
+        <section id="api-integration">
+            <h2>Direct API Integration</h2>
+
+            <h3>HTTP Client Design</h3>
+            <p>All API calls use native <code>fetch()</code> with Bearer token authentication:</p>
+
+            <pre><code><span class="keyword">async function</span> <span class="function">eenFetch</span>&lt;<span class="type">T</span>&gt;(
+  endpoint: <span class="type">string</span>,
+  options: <span class="type">RequestInit</span> = {}
+): <span class="type">Promise</span>&lt;<span class="type">Result</span>&lt;<span class="type">T</span>&gt;&gt; {
+  <span class="keyword">const</span> account = <span class="function">getActiveAccount</span>()
+
+  <span class="comment">// Auto-refresh if needed</span>
+  <span class="keyword">if</span> (<span class="function">isTokenExpired</span>(account)) {
+    <span class="keyword">const</span> refreshResult = <span class="keyword">await</span> <span class="function">refreshAccessToken</span>(account)
+    <span class="keyword">if</span> (refreshResult.error) <span class="keyword">return</span> refreshResult
+  }
+
+  <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(
+    <span class="string">`${account.baseUrl}/api/v3.0${endpoint}`</span>,
+    {
+      ...options,
+      headers: {
+        <span class="string">'Accept'</span>: <span class="string">'application/json'</span>,
+        <span class="string">'Authorization'</span>: <span class="string">`Bearer ${account.accessToken}`</span>,
+        ...options.headers
+      }
+    }
+  )
+
+  <span class="keyword">if</span> (!response.ok) {
+    <span class="keyword">return</span> { data: <span class="keyword">null</span>, error: <span class="function">parseError</span>(response) }
+  }
+
+  <span class="keyword">return</span> { data: <span class="keyword">await</span> response.<span class="function">json</span>(), error: <span class="keyword">null</span> }
+}</code></pre>
+
+            <h3>Token Refresh Implementation</h3>
+            <pre><code><span class="keyword">async function</span> <span class="function">refreshAccessToken</span>(account: <span class="type">Account</span>): <span class="type">Promise</span>&lt;<span class="type">Result</span>&lt;<span class="keyword">void</span>&gt;&gt; {
+  <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(
+    <span class="string">'https://auth.eagleeyenetworks.com/oauth2/token'</span>,
+    {
+      method: <span class="string">'POST'</span>,
+      headers: {
+        <span class="string">'Content-Type'</span>: <span class="string">'application/x-www-form-urlencoded'</span>,
+        <span class="string">'Authorization'</span>: <span class="string">`Basic ${base64(CLIENT_ID + ':' + CLIENT_SECRET)}`</span>
+      },
+      body: <span class="keyword">new</span> <span class="type">URLSearchParams</span>({
+        grant_type: <span class="string">'refresh_token'</span>,
+        refresh_token: account.refreshToken
+      })
+    }
+  )
+
+  <span class="keyword">if</span> (!response.ok) {
+    <span class="keyword">return</span> { data: <span class="keyword">null</span>, error: { code: <span class="string">'AUTH_FAILED'</span> } }
+  }
+
+  <span class="keyword">const</span> data = <span class="keyword">await</span> response.<span class="function">json</span>()
+
+  <span class="comment">// Update stored credentials</span>
+  account.accessToken = data.access_token
+  account.accessTokenExpiresAt = <span class="type">Date</span>.<span class="function">now</span>() + (data.expires_in * <span class="type">1000</span>)
+  <span class="keyword">if</span> (data.refresh_token) {
+    account.refreshToken = data.refresh_token  <span class="comment">// Token rotation</span>
+  }
+
+  <span class="keyword">await</span> <span class="function">saveCredentials</span>()
+  <span class="keyword">return</span> { data: <span class="keyword">undefined</span>, error: <span class="keyword">null</span> }
+}</code></pre>
+        </section>
+
+        <!-- MCP Tools Section -->
+        <section id="tools">
+            <h2>MCP Tools Specification</h2>
+
+            <h3>Authentication Tools</h3>
+            <table>
+                <thead>
+                    <tr><th>Tool</th><th>Description</th><th>Parameters</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>een_auth_status</code></td>
+                        <td>Check authentication status for all accounts</td>
+                        <td><em>none</em></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_set_account</code></td>
+                        <td>Set active account for subsequent calls</td>
+                        <td><span class="tag">accountId</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_list_accounts</code></td>
+                        <td>List all configured accounts</td>
+                        <td><em>none</em></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Camera Tools</h3>
+            <table>
+                <thead>
+                    <tr><th>Tool</th><th>Description</th><th>Parameters</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>een_get_cameras</code></td>
+                        <td>List cameras with pagination</td>
+                        <td><span class="tag optional">pageSize?</span> <span class="tag optional">pageToken?</span> <span class="tag optional">status?</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_get_camera</code></td>
+                        <td>Get single camera details</td>
+                        <td><span class="tag">cameraId</span> <span class="tag optional">include?</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Media Tools</h3>
+            <table>
+                <thead>
+                    <tr><th>Tool</th><th>Description</th><th>Parameters</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>een_get_live_image</code></td>
+                        <td>Get current camera snapshot (base64)</td>
+                        <td><span class="tag">deviceId</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_get_recorded_image</code></td>
+                        <td>Get historical image</td>
+                        <td><span class="tag">deviceId</span> <span class="tag">timestamp</span> <span class="tag optional">type?</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_list_media</code></td>
+                        <td>List recording intervals</td>
+                        <td><span class="tag">deviceId</span> <span class="tag">startTimestamp</span> <span class="tag">endTimestamp</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Event Tools</h3>
+            <table>
+                <thead>
+                    <tr><th>Tool</th><th>Description</th><th>Parameters</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>een_get_events</code></td>
+                        <td>Query events with filters</td>
+                        <td><span class="tag">actor</span> <span class="tag">types</span> <span class="tag">startTimestamp</span> <span class="tag optional">endTimestamp?</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_get_event_types</code></td>
+                        <td>List available event types</td>
+                        <td><span class="tag optional">pageSize?</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>User Tools</h3>
+            <table>
+                <thead>
+                    <tr><th>Tool</th><th>Description</th><th>Parameters</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>een_get_current_user</code></td>
+                        <td>Get authenticated user profile</td>
+                        <td><em>none</em></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_get_users</code></td>
+                        <td>List users with pagination</td>
+                        <td><span class="tag optional">pageSize?</span> <span class="tag optional">pageToken?</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_get_user</code></td>
+                        <td>Get specific user</td>
+                        <td><span class="tag">userId</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Alert & Bridge Tools</h3>
+            <table>
+                <thead>
+                    <tr><th>Tool</th><th>Description</th><th>Parameters</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>een_get_alerts</code></td>
+                        <td>List system alerts</td>
+                        <td><span class="tag optional">actorId?</span> <span class="tag optional">startTimestamp?</span> <span class="tag optional">pageSize?</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_get_bridges</code></td>
+                        <td>List bridge devices</td>
+                        <td><span class="tag optional">pageSize?</span> <span class="tag optional">status?</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>een_get_bridge</code></td>
+                        <td>Get bridge details</td>
+                        <td><span class="tag">bridgeId</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="margin-top: 1rem;">
+                <span class="tag">required</span> = Required parameter
+                <span class="tag optional">optional?</span> = Optional parameter
+            </p>
+        </section>
+
+        <!-- Development Tasks Section -->
+        <section id="tasks">
+            <h2>Development Tasks</h2>
+            <p>Tasks designed for independent agents with parallel execution where possible.</p>
+
+            <div class="task-card">
+                <h4><span class="task-num">1</span> Project Scaffolding</h4>
+                <div class="meta">
+                    <span>Dependencies: None</span>
+                </div>
+                <p>Set up Node.js/TypeScript project with @modelcontextprotocol/sdk, playwright, typescript, tsx. Create directory structure and basic MCP server skeleton.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">2</span> Type Definitions</h4>
+                <div class="meta">
+                    <span>Dependencies: Task 1</span>
+                </div>
+                <p>Define TypeScript interfaces: AuthState, TokenResponse, Camera, Event, User, Alert, Bridge, Result&lt;T&gt;, tool parameters.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">3</span> Auth CLI with Playwright</h4>
+                <div class="meta">
+                    <span>Dependencies: Task 1, 2</span>
+                    <span style="background: #dbeafe; color: #1e40af;">Parallel Group A</span>
+                </div>
+                <p>Headless OAuth script with commands: login, logout, list, status. Direct token exchange with EEN (not via proxy).</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">4</span> Token Manager</h4>
+                <div class="meta">
+                    <span>Dependencies: Task 1, 2</span>
+                    <span style="background: #dbeafe; color: #1e40af;">Parallel Group A</span>
+                </div>
+                <p>Credential storage, multi-account support, token expiration checking, auto-refresh logic.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">5</span> API Client - Core</h4>
+                <div class="meta">
+                    <span>Dependencies: Task 2, 4</span>
+                </div>
+                <p>Base HTTP client with auth, error handling, Result&lt;T&gt; wrapping, pagination helper, timeout handling.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">6</span> API Client - Cameras & Bridges</h4>
+                <div class="meta">
+                    <span>Dependencies: Task 5</span>
+                    <span style="background: #d1fae5; color: #065f46;">Parallel Group B</span>
+                </div>
+                <p>getCameras, getCamera, getBridges, getBridge functions.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">7</span> API Client - Media</h4>
+                <div class="meta">
+                    <span>Dependencies: Task 5</span>
+                    <span style="background: #d1fae5; color: #065f46;">Parallel Group B</span>
+                </div>
+                <p>getLiveImage, getRecordedImage, listMedia with binary-to-base64 conversion.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">8</span> API Client - Events & Alerts</h4>
+                <div class="meta">
+                    <span>Dependencies: Task 5</span>
+                    <span style="background: #d1fae5; color: #065f46;">Parallel Group B</span>
+                </div>
+                <p>listEvents, listEventTypes, listAlerts, getAlert functions.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">9</span> API Client - Users</h4>
+                <div class="meta">
+                    <span>Dependencies: Task 5</span>
+                    <span style="background: #d1fae5; color: #065f46;">Parallel Group B</span>
+                </div>
+                <p>getCurrentUser, getUsers, getUser functions.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">10</span> MCP Tool Handlers</h4>
+                <div class="meta">
+                    <span>Dependencies: Tasks 6-9</span>
+                </div>
+                <p>Tool schemas (JSON Schema), execution handlers, tool registration with MCP server.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">11</span> MCP Server Integration</h4>
+                <div class="meta">
+                    <span>Dependencies: Task 4, 10</span>
+                </div>
+                <p>Main entry point with stdio transport, tool registration, graceful shutdown, startup validation.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">12</span> Testing</h4>
+                <div class="meta">
+                    <span>Dependencies: All previous</span>
+                </div>
+                <p><strong>Unit Tests (Mock):</strong> Token manager, API client, tool handlers, crypto functions.</p>
+                <p><strong>Integration Tests (Live):</strong> Auth CLI (login, revoke), all MCP tools against live EEN API.</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Requires <code>.env</code> with TEST_USER and TEST_PASSWORD for integration tests.</p>
+            </div>
+
+            <div class="task-card">
+                <h4><span class="task-num">13</span> Documentation</h4>
+                <div class="meta">
+                    <span>Dependencies: All previous</span>
+                </div>
+                <p>README.md with installation, Auth CLI usage, configuration, tools reference, troubleshooting.</p>
+            </div>
+
+            <h3>Task Dependency Graph</h3>
+            <div class="diagram">Task 1 (Scaffolding)
+    │
+    ▼
+Task 2 (Types)
+    │
+    ├──────────────────┬─────────────────┐
+    ▼                  ▼                 │
+Task 3 (Auth CLI)  Task 4 (Token Mgr)   │   ← Parallel Group A
+    │                  │                 │
+    │                  ▼                 │
+    │              Task 5 (API Core)     │
+    │                  │                 │
+    │     ┌────────────┼────────────┬────┴───────┐
+    │     ▼            ▼            ▼            ▼
+    │  Task 6       Task 7       Task 8       Task 9   ← Parallel Group B
+    │  (Cameras)    (Media)      (Events)     (Users)
+    │     │            │            │            │
+    │     └────────────┴────────────┴────────────┘
+    │                       │
+    │                       ▼
+    │                  Task 10 (Tool Handlers)
+    │                       │
+    └───────────────────────┤
+                            ▼
+                       Task 11 (Integration)
+                            │
+                            ▼
+                       Task 12 (Testing)
+                            │
+                            ▼
+                       Task 13 (Documentation)</div>
+
+            <h3>Parallel Execution Groups</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <h4 style="color: #1e40af;">Group A (after Task 2)</h4>
+                    <ul>
+                        <li>Task 3: Auth CLI</li>
+                        <li>Task 4: Token Manager</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4 style="color: #065f46;">Group B (after Task 5)</h4>
+                    <ul>
+                        <li>Task 6: Cameras & Bridges</li>
+                        <li>Task 7: Media</li>
+                        <li>Task 8: Events & Alerts</li>
+                        <li>Task 9: Users</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration Section -->
+        <section id="configuration">
+            <h2>Configuration</h2>
+
+            <h3>Environment Variables</h3>
+            <pre><code><span class="comment"># Required for Auth CLI and MCP Server</span>
+EEN_CLIENT_ID=your-client-id
+EEN_CLIENT_SECRET=your-client-secret
+
+<span class="comment"># Optional</span>
+EEN_CREDENTIALS_PATH=~/.een-mcp/credentials.json
+EEN_DEBUG=true
+
+<span class="comment"># Required for Integration Tests</span>
+TEST_USER=test@example.com
+TEST_PASSWORD=your-test-password</code></pre>
+
+            <h3>MCP Client Configuration (Claude Desktop)</h3>
+            <pre><code>{
+  <span class="string">"mcpServers"</span>: {
+    <span class="string">"een"</span>: {
+      <span class="string">"command"</span>: <span class="string">"npx"</span>,
+      <span class="string">"args"</span>: [<span class="string">"tsx"</span>, <span class="string">"/path/to/een-mcp-server/src/index.ts"</span>],
+      <span class="string">"env"</span>: {
+        <span class="string">"EEN_CLIENT_ID"</span>: <span class="string">"your-client-id"</span>,
+        <span class="string">"EEN_CLIENT_SECRET"</span>: <span class="string">"your-client-secret"</span>
+      }
+    }
+  }
+}</code></pre>
+        </section>
+
+        <!-- Security Section -->
+        <section id="security">
+            <h2>Security Considerations</h2>
+
+            <div class="security-item">
+                <h4>1. Credential Storage</h4>
+                <ul>
+                    <li>All credentials in <code>~/.een-mcp/credentials.json</code> with <code>0o600</code> permissions</li>
+                    <li>Refresh tokens stored in plaintext (standard for local credential files)</li>
+                    <li>Client ID/secret stored once, reused for all accounts</li>
+                    <li>Never logged or exposed via MCP responses</li>
+                </ul>
+            </div>
+
+            <div class="security-item">
+                <h4>2. Password Persistence (<code>--persistPassword</code>)</h4>
+                <ul>
+                    <li>Passwords encrypted at rest using machine-specific key</li>
+                    <li>Enables automatic re-authentication when refresh token expires</li>
+                    <li><strong>Trade-off:</strong> Convenience vs. security - users should understand the risk</li>
+                    <li>Without flag: User must manually re-run CLI when refresh token expires</li>
+                    <li>With flag: MCP server can silently re-authenticate</li>
+                </ul>
+            </div>
+
+            <div class="grid-2">
+                <div class="security-item">
+                    <h4>3. Token Lifecycle</h4>
+                    <ul>
+                        <li>Auto-refresh 5 min before expiry</li>
+                        <li>Refresh token rotation supported</li>
+                        <li>Failed refresh → reauth or error</li>
+                    </ul>
+                </div>
+                <div class="security-item">
+                    <h4>4. Token Revocation</h4>
+                    <ul>
+                        <li><code>revoke</code> calls EEN revocation endpoint</li>
+                        <li>Removes all local data (tokens + password)</li>
+                        <li>Ensures tokens cannot be reused</li>
+                    </ul>
+                </div>
+                <div class="security-item">
+                    <h4>5. Input Validation</h4>
+                    <ul>
+                        <li>All parameters validated</li>
+                        <li>Pagination limits enforced</li>
+                        <li>Timestamp format validation</li>
+                    </ul>
+                </div>
+                <div class="security-item">
+                    <h4>6. MCP Server Isolation</h4>
+                    <ul>
+                        <li>Passwords never flow through MCP</li>
+                        <li>Users authenticate via CLI separately</li>
+                        <li>MCP tools only read existing credentials</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- References Section -->
+        <section>
+            <h2>References</h2>
+            <ul>
+                <li><strong>OAuth Proxy:</strong> <code>../../een-oauth-proxy/proxy/src/index.js</code></li>
+                <li><strong>API Toolkit:</strong> <code>../../een-api-toolkit/src/services/</code></li>
+                <li><strong>Playwright Auth:</strong> <code>../../een-api-toolkit/e2e/auth-helper.ts</code></li>
+                <li><strong>EEN API Docs:</strong> <a href="https://developer.eagleeyenetworks.com/" target="_blank">developer.eagleeyenetworks.com</a></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>EEN MCP Server Implementation Plan v2.0 | Multi-user support with local token storage | No external proxy</p>
+    </footer>
+</body>
+</html>
